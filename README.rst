@@ -31,4 +31,4 @@ Building and Running
 In order to build and run the server, enter the following commands::
 
   $ make
-  $ bin/websocket
+  $ bin/ewsd
