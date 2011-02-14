@@ -6,6 +6,6 @@
   {registered, [websocket_sup, websocket_server]},
   {applications, [kernel, stdlib]},
   {mod, {websocket_app, []}},
-  {env, [{ip, any}, {port, 8888}]}
+  {env, [{ip, any}, {port, 8888}, {loop, {websocket_server, loop}}]}
  ]}.
 %% vim: set filetype=erlang :

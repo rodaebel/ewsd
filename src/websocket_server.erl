@@ -26,7 +26,7 @@
 start_link() ->
     {ok, Address} = application:get_env(ip),
     {ok, Port} = application:get_env(port),
-    Loop = {?SERVER, loop},
+    {ok, Loop} = application:get_env(loop),
     State = #server_state{ip=Address, port=Port, loop=Loop},
     gen_server:start_link({local, ?SERVER}, ?MODULE, State, []).
 
