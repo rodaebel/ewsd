@@ -48,34 +48,35 @@ init(State = #server_state{ip=Address, port=Port}) ->
 
 accept_loop({Server, Socket, {M, F}}) ->
     {ok, S} = gen_tcp:accept(Socket),
+    error_logger:info_msg("~p Socket connected~n", [self()]),
     gen_server:cast(Server, {accepted, self()}),
-    ProtocolState = #protocol_state{socket=S, handshake=false},
-    M:F(ProtocolState).
+    M:F({handshake, S}).
     
 accept(State = #server_state{socket=Socket, loop=Loop}) ->
     spawn(?MODULE, accept_loop, [{self(), Socket, Loop}]),
     State.
 
 %% @doc Server main loop.
-loop(ProtoState = #protocol_state{socket=Socket, handshake=HandshakeDone}) ->
+loop({Type, Socket}) ->
     case gen_tcp:recv(Socket, 0) of
         {ok, Data} ->
-            case HandshakeDone of
-                false ->
-                    Response = websocket_lib:process_handshake(Data),
-                    gen_tcp:send(Socket, Response),
-                    State = ProtoState#protocol_state{handshake=true},
-                    error_logger:info_msg("~p Socket connected~n", [self()]);
-                true ->
-                    gen_tcp:send(Socket, [0, Data, 255]),
-                    State = ProtoState
-            end,
-            loop(State);
+            handle_message({Type, Socket, Data});
         {error, closed} ->
             error_logger:info_msg("~p Socket closed~n", [self()]);
         {error, Reason} ->
             error_logger:error_report({?MODULE, loop, Reason})
     end.
+
+%% @private
+%% @doc Handles Web Socket messages.
+%% @spec handle_message({Type, Socket, Data}) -> void()
+handle_message({handshake, Socket, Data}) ->
+    Response = websocket_lib:process_handshake(Data),
+    gen_tcp:send(Socket, Response),
+    loop({message, Socket});
+handle_message({message, Socket, Data}) ->
+    gen_tcp:send(Socket, [0, Data, 255]),
+    loop({message, Socket}).
 
 %% @private
 %% @doc Handles call messages.
