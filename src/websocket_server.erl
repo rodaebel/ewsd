@@ -49,7 +49,6 @@ init(State = #server_state{ip=Address, port=Port}) ->
 %% @spec accept_loop({Server, Socket, Loop}) -> any()
 accept_loop({Server, Socket, {M, F}}) ->
     {ok, S} = gen_tcp:accept(Socket),
-    error_logger:info_msg("~p Socket connected~n", [self()]),
     gen_server:cast(Server, {accepted, self()}),
     M:F({handshake, S}).
     

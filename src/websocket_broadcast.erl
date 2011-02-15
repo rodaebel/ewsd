@@ -23,8 +23,9 @@ loop({Type, Socket}) ->
             handle_message({Type, Socket, Data});
         {error, closed} ->
             ets:delete_object(clients, {Socket}),
-            error_logger:info_msg("~p Socket closed~n", [self()]);
+            error_logger:info_msg("~p Web Socket closed~n", [self()]);
         {error, Reason} ->
+            ets:delete_object(clients, {Socket}),
             error_logger:error_report({?MODULE, loop, Reason})
     end.
 
@@ -35,6 +36,7 @@ handle_message({handshake, Socket, Data}) ->
     Response = websocket_lib:process_handshake(Data),
     ets:insert_new(clients, {Socket}),
     gen_tcp:send(Socket, Response),
+    error_logger:info_msg("~p Web Socket connected~n", [self()]),
     loop({message, Socket});
 handle_message({message, Socket, Data}) ->
     Frame = [0, Data, 255],

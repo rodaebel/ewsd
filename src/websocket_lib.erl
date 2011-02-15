@@ -19,13 +19,13 @@ process_handshake(Bin) ->
     {Key1, Key2, Origin, Host} = parse_header(lists:reverse(Head)),
     Key3 = list_to_binary(Body),
     Challenge = calc_challenge(Key1, Key2, Key3),
-    Response = [
-        "HTTP/1.1 101 WebSocket Protocol Handshake\r\n",
-        "Upgrade: WebSocket\r\nConnection: Upgrade\r\n",
-        "Sec-WebSocket-Origin: ", Origin, "\r\n",
-        "Sec-WebSocket-Location: ws://", Host, "/\r\n",
-        "Sec-WebSocket-Protocol: chat\r\n\r\n", Challenge],
-    Response.
+
+    % Web Socket Handshake response
+    "HTTP/1.1 101 WebSocket Protocol Handshake\r\n"
+    "Upgrade: WebSocket\r\nConnection: Upgrade\r\n"
+    "Sec-WebSocket-Origin: " ++ Origin ++ "\r\n"
+    "Sec-WebSocket-Location: ws://" ++ Host ++ "/\r\n"
+    "Sec-WebSocket-Protocol: chat\r\n\r\n" ++ Challenge.
 
 %% Pivate API
 
