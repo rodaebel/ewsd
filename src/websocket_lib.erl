@@ -1,10 +1,8 @@
-%% @author Tobias Rodaebel <tobias.rodaebel@googlemail.com>
-%% @copyright 2011 Tobias Rodaebel
+%% @author Tobias Rodaebel
 %% @doc Web Socket Library.
 %% @reference http://tools.ietf.org/html/draft-hixie-thewebsocketprotocol-76
 
 -module(websocket_lib).
--author("tobias.rodaebel@googlemail.com").
 
 %% API
 -export([process_handshake/1]).

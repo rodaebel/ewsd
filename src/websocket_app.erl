@@ -1,9 +1,7 @@
-%% @author Tobias Rodaebel <tobias.rodaebel@googlemail.com>
-%% @copyright 2011 Tobias Rodaebel
+%% @author Tobias Rodaebel
 %% @doc Web Socket Server Application.
 
 -module(websocket_app).
--author('tobias.rodaebel@googlemail.com').
 
 -behaviour(application).
 

@@ -19,6 +19,15 @@ a copy of the License at
   http://www.apache.org/licenses/LICENSE-2.0
 
 
+Credits
+-------
+
+Thanks to Jesse Farmer for a great article about building generalized TCP
+servers which heavily influenced this software.
+
+  http://20bits.com/articles/erlang-a-generalized-tcp-server
+
+
 Requirements
 ------------
 
