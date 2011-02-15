@@ -5,8 +5,10 @@
 -module(websocket_broadcast).
 -author("tobias.rodaebel@googlemail.com").
 
+-behaviour(websocket_handler).
+
 %% API
--export([init_handler/0, loop/1]).
+-export([init_handler/0, loop/1, handle_message/1]).
 
 %% @doc Initializes the handler.
 %% @spec init_handler() -> ok
@@ -14,6 +16,7 @@ init_handler() ->
     ets:new(clients, [public, named_table, ordered_set]),
     ok.
 
+%% @private
 %% @doc Server main loop.
 %% @spec loop({Type, Socket}) -> void()
 loop({Type, Socket}) ->

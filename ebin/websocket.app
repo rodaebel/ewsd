@@ -3,7 +3,7 @@
  [{description, "Web Socket Server"},
   {vsn, "1.0.0"},
   {modules, [websocket_app, websocket_sup, websocket_lib, websocket_server,
-             websocket_broadcast]},
+             websocket_handler, websocket_broadcast]},
   {registered, [websocket_sup, websocket_server]},
   {applications, [kernel, stdlib]},
   {mod, {websocket_app, []}},

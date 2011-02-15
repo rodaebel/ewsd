@@ -5,7 +5,7 @@ APP=websocket
 all: compile
 
 compile:
-	@$(ERL) -make
+	@$(ERL) -pa ebin/ -make
 
 clean:
 	rm -f ebin/*.beam
