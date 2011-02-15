@@ -1,9 +1,7 @@
 %% @author Tobias Rodaebel
-%% @copyright 2011 Tobias Rodaebel
 %% @doc Web Socket Server main module.
 
 -module(websocket).
--author('tobias.rodaebel@googlemail.com').
 
 -export([start/0, stop/0]).
 
