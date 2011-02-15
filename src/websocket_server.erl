@@ -15,7 +15,7 @@
 -export([init/1, code_change/3, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2]).
 
--export([accept_loop/1, loop/1]).
+-export([accept_loop/1]).
 
 -include("websocket.hrl").
 
@@ -26,8 +26,9 @@
 start_link() ->
     {ok, Address} = application:get_env(ip),
     {ok, Port} = application:get_env(port),
-    {ok, Loop} = application:get_env(loop),
-    State = #server_state{ip=Address, port=Port, loop=Loop},
+    {ok, Module} = application:get_env(handler_module),
+    Module:init_handler(),
+    State = #server_state{ip=Address, port=Port, loop={Module, loop}},
     gen_server:start_link({local, ?SERVER}, ?MODULE, State, []).
 
 %% @private
@@ -46,37 +47,19 @@ init(State = #server_state{ip=Address, port=Port}) ->
             {stop, {?MODULE, tcp_listen, Reason}}
     end.
 
+%% @doc Accepts TCP connections.
+%% @spec accept_loop({Server, Socket, Handler}) -> any()
 accept_loop({Server, Socket, {M, F}}) ->
     {ok, S} = gen_tcp:accept(Socket),
     error_logger:info_msg("~p Socket connected~n", [self()]),
     gen_server:cast(Server, {accepted, self()}),
     M:F({handshake, S}).
     
+%% @doc Spawns a new child process for the new connection.
+%% @spec accept(State) -> State
 accept(State = #server_state{socket=Socket, loop=Loop}) ->
     spawn(?MODULE, accept_loop, [{self(), Socket, Loop}]),
     State.
-
-%% @doc Server main loop.
-loop({Type, Socket}) ->
-    case gen_tcp:recv(Socket, 0) of
-        {ok, Data} ->
-            handle_message({Type, Socket, Data});
-        {error, closed} ->
-            error_logger:info_msg("~p Socket closed~n", [self()]);
-        {error, Reason} ->
-            error_logger:error_report({?MODULE, loop, Reason})
-    end.
-
-%% @private
-%% @doc Handles Web Socket messages.
-%% @spec handle_message({Type, Socket, Data}) -> void()
-handle_message({handshake, Socket, Data}) ->
-    Response = websocket_lib:process_handshake(Data),
-    gen_tcp:send(Socket, Response),
-    loop({message, Socket});
-handle_message({message, Socket, Data}) ->
-    gen_tcp:send(Socket, [0, Data, 255]),
-    loop({message, Socket}).
 
 %% @private
 %% @doc Handles call messages.
