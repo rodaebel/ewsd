@@ -55,7 +55,8 @@ accept_loop({Server, Socket, Handler}) ->
 %% @doc Spawns a new child process for the new connection.
 %% @spec accept(State) -> State
 accept(State = #server_state{socket=Socket, handler=Handler}) ->
-    spawn(?MODULE, accept_loop, [{self(), Socket, Handler}]),
+    process_flag(trap_exit, true),
+    spawn_link(?MODULE, accept_loop, [{self(), Socket, Handler}]),
     State.
 
 %% @private
