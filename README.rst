@@ -41,3 +41,22 @@ In order to build and run the server, enter the following commands::
 
   $ make
   $ bin/ewsd
+
+
+Web Socket Handlers
+-------------------
+
+This library introduces a `websocket_handler` behavior which aims at providing
+some convenience for developing new Web Socket handlers.
+
+A typical Web Socket handler consists of the following methods::
+
+  init_handler, handle_message, handle_close
+
+Included in this distribution you find a brief example of how to implement a
+broadcast handler.
+
+A Web Socket handler module must be configered in the `websocket.app` file by
+adding this tuple `{handler_module, ModuleName}` to the environment::
+
+  {env, [{ip, any}, {port, 8888}, {handler_module, websocket_broadcast}]}
