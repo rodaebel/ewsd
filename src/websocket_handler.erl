@@ -14,21 +14,25 @@ behaviour_info(_Other) ->
     undefined.
 
 %% @doc Server main loop.
-%% @spec loop({Module, Type, Socket}) -> void()
-loop({Module, Type, Socket}) ->
+%% @spec loop({Handler, Type, Socket}) -> void()
+loop({Handler, Type, Socket}) ->
     case gen_tcp:recv(Socket, 0) of
         {ok, Data} ->
-            Module:handle_message({Type, Socket, Data}),
-            loop({Module, message, Socket});
+            Handler:handle_message({Type, Socket, Data}),
+            loop({Handler, message, Socket});
         {error, closed} ->
-            Module:handle_close(Socket);
+            Handler:handle_close(Socket);
         {error, Reason} ->
-            Module:handle_close(Socket),
+            Handler:handle_close(Socket),
             error_logger:error_report({?MODULE, loop, Reason})
     end.
 
+%% @doc Handles Web Socket message.
+%% @spec handle_message(Msg) -> void()
 handle_message(_Msg) ->
     noreply.
 
+%% @doc Handles closed Web Socket.
+%% @spec handle_close(Socket) -> void()
 handle_close(_Socket) ->
     noreply.
