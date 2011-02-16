@@ -14,11 +14,14 @@
 %% @doc Processes the client's handshake request.
 %% @spec process_handshake(Bin) -> Response
 process_handshake(Bin) ->
-    Data = binary_to_list(Bin),
-    [Body|Head] = lists:reverse(string:tokens(Data, "\r\n")),
-    {Key1, Key2, Origin, Host} = parse_header(lists:reverse(Head)),
-    Key3 = list_to_binary(Body),
-    Challenge = calc_challenge(Key1, Key2, Key3),
+    {ok, {Headers, Body}} = parse_request(Bin),
+
+    Origin = proplists:get_value(origin, Headers),
+    Host = proplists:get_value(host, Headers),
+    Key1 = proplists:get_value('sec-websocket-key1', Headers),
+    Key2 = proplists:get_value('sec-websocket-key2', Headers),
+
+    Challenge = calc_challenge(Key1, Key2, list_to_binary(Body)),
 
     % Web Socket Handshake response
     "HTTP/1.1 101 WebSocket Protocol Handshake\r\n"
@@ -28,6 +31,47 @@ process_handshake(Bin) ->
     "Sec-WebSocket-Protocol: chat\r\n\r\n" ++ Challenge.
 
 %% Pivate API
+
+%% @private
+%% @doc Parses handshake request.
+%% @spec parse_request(Bin) -> {ok, Headers, Body}
+parse_request(Bin) ->
+    L = binary_to_list(Bin),
+    [H|[Body]] = re:split(L, "\r\n\r\n", [{return, list}]),
+    Head = re:split(H, "\r\n", [{return, list}]),
+    {Key1, Key2, Origin, Host} = parse_header(lists:reverse(Head)),
+    Headers = [{origin, Origin},
+               {host, Host},
+               {'sec-websocket-key1', Key1},
+               {'sec-websocket-key2', Key2}],
+    {ok, {Headers, Body}}.
+
+parse_request_test_() ->
+    [?_assertEqual(
+        {ok, []},
+        parse_request(
+<<71,69,84,32,47,32,72,84,84,80,47,49,46,49,13,10,85,112,103,114,97,100,101,58,
+  32,87,101,98,83,111,99,107,101,116,13,10,67,111,110,110,101,99,116,105,111,
+  110,58,32,85,112,103,114,97,100,101,13,10,72,111,115,116,58,32,108,111,99,97,
+  108,104,111,115,116,58,56,56,56,56,13,10,79,114,105,103,105,110,58,32,104,
+  116,116,112,58,47,47,108,111,99,97,108,104,111,115,116,13,10,83,101,99,45,87,
+  101,98,83,111,99,107,101,116,45,75,101,121,49,58,32,50,80,32,32,48,63,56,41,
+  54,50,32,51,55,50,32,39,32,48,32,48,13,10,83,101,99,45,87,101,98,83,111,99,
+  107,101,116,45,75,101,121,50,58,32,50,73,48,32,54,121,54,54,63,32,32,34,53,
+  55,49,48,32,104,87,32,94,37,35,41,110,13,10,13,10,221,202,132,253,200,62,10,
+  237>>)),
+     ?_assertEqual(
+        {ok, []},
+        parse_request(
+<<71,69,84,32,47,32,72,84,84,80,47,49,46,49,13,10,85,112,103,114,97,100,101,58,
+  32,87,101,98,83,111,99,107,101,116,13,10,67,111,110,110,101,99,116,105,111,
+  110,58,32,85,112,103,114,97,100,101,13,10,72,111,115,116,58,32,108,111,99,97,
+  108,104,111,115,116,58,56,56,56,56,13,10,79,114,105,103,105,110,58,32,104,
+  116,116,112,58,47,47,108,111,99,97,108,104,111,115,116,13,10,83,101,99,45,87,
+  101,98,83,111,99,107,101,116,45,75,101,121,49,58,32,90,52,68,102,51,116,43,
+  82,120,56,57,32,32,67,52,51,51,56,123,91,115,13,10,83,101,99,45,87,101,98,83,
+  111,99,107,101,116,45,75,101,121,50,58,32,49,32,73,32,56,57,55,50,54,54,65,
+  56,50,32,53,13,10,13,10,190,21,91,4,144,224,69,137>>))].
 
 %% @private
 %% @doc Parses header from the client's handshake request.
