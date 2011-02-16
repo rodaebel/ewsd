@@ -26,7 +26,7 @@ start_link() ->
     {ok, Port} = application:get_env(port),
     {ok, Module} = application:get_env(handler_module),
     Module:init_handler(),
-    State = #server_state{ip=Address, port=Port, loop={Module, loop}},
+    State = #server_state{ip=Address, port=Port, handler=Module},
     gen_server:start_link({local, ?SERVER}, ?MODULE, State, []).
 
 %% @private
@@ -46,16 +46,16 @@ init(State = #server_state{ip=Address, port=Port}) ->
     end.
 
 %% @doc Accepts TCP connections.
-%% @spec accept_loop({Server, Socket, Loop}) -> any()
-accept_loop({Server, Socket, {M, F}}) ->
+%% @spec accept_loop({Server, Socket, Handler}) -> any()
+accept_loop({Server, Socket, Handler}) ->
     {ok, S} = gen_tcp:accept(Socket),
     gen_server:cast(Server, {accepted, self()}),
-    M:F({handshake, S}).
+    websocket_handler:loop({Handler, handshake, S}).
     
 %% @doc Spawns a new child process for the new connection.
 %% @spec accept(State) -> State
-accept(State = #server_state{socket=Socket, loop=Loop}) ->
-    spawn(?MODULE, accept_loop, [{self(), Socket, Loop}]),
+accept(State = #server_state{socket=Socket, handler=Handler}) ->
+    spawn(?MODULE, accept_loop, [{self(), Socket, Handler}]),
     State.
 
 %% @private

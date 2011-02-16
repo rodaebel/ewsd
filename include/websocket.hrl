@@ -1,1 +1,1 @@
--record(server_state, {port, loop, ip=any, socket=null}).
+-record(server_state, {port, handler, ip=any, socket=null}).
