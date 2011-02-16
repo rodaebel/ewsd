@@ -18,10 +18,10 @@ init_handler() ->
 %% @doc Handles Web Socket messages.
 %% @spec handle_message({Type, Socket, Data}) -> void()
 handle_message({handshake, Socket, Data}) ->
-    Response = websocket_lib:process_handshake(Data),
+    {ok, Response, Path} = websocket_lib:process_handshake(Data),
     ets:insert_new(clients, {Socket}),
     gen_tcp:send(Socket, Response),
-    error_logger:info_msg("~p Socket connected~n", [self()]);
+    error_logger:info_msg("~p Socket connected (~s)~n", [self(), Path]);
 handle_message({message, _Socket, Data}) ->
     Frame = [0, Data, 255],
     ets:foldl(fun({S}, _Acc) -> gen_tcp:send(S, Frame) end, notused, clients).

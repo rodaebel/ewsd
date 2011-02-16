@@ -14,7 +14,7 @@
 %% @doc Processes the client's handshake request.
 %% @spec process_handshake(Bin) -> Response
 process_handshake(Bin) ->
-    {ok, {Headers, Body}} = parse_request(Bin),
+    {ok, {Headers, Path, Body}} = parse_request(Bin),
 
     Origin = proplists:get_value(origin, Headers),
     Host = proplists:get_value(host, Headers),
@@ -24,11 +24,14 @@ process_handshake(Bin) ->
     Challenge = calc_challenge(Key1, Key2, list_to_binary(Body)),
 
     % Web Socket Handshake response
+    Response =
     "HTTP/1.1 101 WebSocket Protocol Handshake\r\n"
     "Upgrade: WebSocket\r\nConnection: Upgrade\r\n"
     "Sec-WebSocket-Origin: " ++ Origin ++ "\r\n"
-    "Sec-WebSocket-Location: ws://" ++ Host ++ "/\r\n"
-    "Sec-WebSocket-Protocol: chat\r\n\r\n" ++ Challenge.
+    "Sec-WebSocket-Location: ws://" ++ Host ++ Path ++ "\r\n"
+    "Sec-WebSocket-Protocol: chat\r\n\r\n" ++ Challenge,
+
+    {ok, Response, Path}.
 
 %% Pivate API
 
@@ -36,6 +39,8 @@ process_handshake(Bin) ->
 %% @doc Parses handshake request.
 %% @spec parse_request(Bin) -> {ok, Headers, Body}
 parse_request(Bin) ->
+    {ok, {http_request, _, P, _}, _} = erlang:decode_packet(http_bin, Bin, []),
+    {abs_path, Path} = P,
     L = binary_to_list(Bin),
     [H|[Body]] = re:split(L, "\r\n\r\n", [{return, list}]),
     Head = re:split(H, "\r\n", [{return, list}]),
@@ -44,11 +49,16 @@ parse_request(Bin) ->
                {host, Host},
                {'sec-websocket-key1', Key1},
                {'sec-websocket-key2', Key2}],
-    {ok, {Headers, Body}}.
+    {ok, {Headers, binary_to_list(Path), Body}}.
 
 parse_request_test_() ->
     [?_assertEqual(
-        {ok, []},
+        {ok, {[{origin,"http://localhost"},
+               {host,"localhost:8888"},
+               {'sec-websocket-key1',"2P  0?8)62 372 ' 0 0"},
+               {'sec-websocket-key2',"2I0 6y66?  \"5710 hW ^%#)n"}],
+              "/",
+              [221,202,132,253,200,62,10,237]}},
         parse_request(
 <<71,69,84,32,47,32,72,84,84,80,47,49,46,49,13,10,85,112,103,114,97,100,101,58,
   32,87,101,98,83,111,99,107,101,116,13,10,67,111,110,110,101,99,116,105,111,
@@ -61,7 +71,12 @@ parse_request_test_() ->
   55,49,48,32,104,87,32,94,37,35,41,110,13,10,13,10,221,202,132,253,200,62,10,
   237>>)),
      ?_assertEqual(
-        {ok, []},
+        {ok, {[{origin,"http://localhost"},
+               {host,"localhost:8888"},
+               {'sec-websocket-key1',"Z4Df3t+Rx89  C4338{[s"},
+               {'sec-websocket-key2',"1 I 897266A82 5"}],
+              "/",
+              [190,21,91,4,144,224,69,137]}},
         parse_request(
 <<71,69,84,32,47,32,72,84,84,80,47,49,46,49,13,10,85,112,103,114,97,100,101,58,
   32,87,101,98,83,111,99,107,101,116,13,10,67,111,110,110,101,99,116,105,111,
