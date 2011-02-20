@@ -1,4 +1,7 @@
 @author Tobias Rodaebel
 @version 1.0.0
 @title Web Socket Server
-@doc Web Socket Server
+@reference <a href="http://tools.ietf.org/html/draft-hixie-thewebsocketprotocol-76" target="_blank">Web Socket Protocol</a>
+@doc Lightweight Web Socket Server
+
+This software provides a TCP server for communicating through Web Sockets.

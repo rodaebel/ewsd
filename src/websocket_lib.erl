@@ -1,6 +1,6 @@
 %% @author Tobias Rodaebel
 %% @doc Web Socket Library.
-%% @reference http://tools.ietf.org/html/draft-hixie-thewebsocketprotocol-76
+%% @reference <a href="http://tools.ietf.org/html/draft-hixie-thewebsocketprotocol-76" target="_blank">Web Socket Protocol</a>
 
 -module(websocket_lib).
 
@@ -12,7 +12,7 @@
 -include_lib("eunit/include/eunit.hrl").
 
 %% @doc Processes the client's handshake request.
-%% @spec process_handshake(Bin) -> Response
+%% @spec process_handshake(binary()) -> {ok, Response::string(), Path::string()}
 process_handshake(Bin) ->
     {ok, {Headers, Path, Body}} = parse_request(Bin),
 
@@ -37,7 +37,7 @@ process_handshake(Bin) ->
 
 %% @private
 %% @doc Parses handshake request.
-%% @spec parse_request(Bin) -> {ok, Headers, Body}
+%% @spec parse_request(binary()) -> {ok, Headers::list(), Body::list()}
 parse_request(Bin) ->
     {ok, {http_request, _, P, _}, _} = erlang:decode_packet(http_bin, Bin, []),
     {abs_path, Path} = P,
@@ -51,6 +51,7 @@ parse_request(Bin) ->
                {'sec-websocket-key2', Key2}],
     {ok, {Headers, binary_to_list(Path), Body}}.
 
+%% @hidden
 parse_request_test_() ->
     [?_assertEqual(
         {ok, {[{origin,"http://localhost"},
@@ -90,7 +91,7 @@ parse_request_test_() ->
 
 %% @private
 %% @doc Parses header from the client's handshake request.
-%% @spec parse_header(Head) -> {Key1, Key2, Origin, Host}
+%% @spec parse_header(list()) -> {Key1, Key2, Origin, Host}
 parse_header(Head) ->
     Key1 = get_header_value("Sec-WebSocket-Key1", Head),
     Key2 = get_header_value("Sec-WebSocket-Key2", Head),
@@ -98,18 +99,22 @@ parse_header(Head) ->
     Host = get_header_value("Host", Head),
     {Key1, Key2, Origin, Host}.
 
+%% @private
+%% @doc Gets a header value.
+%% @spec get_header_value(string(), list()) -> string()
 get_header_value(String, [H|T]) ->
     case string:str(H, string:concat(String, ": ")) of
         0 -> get_header_value(String, T); 
         _Pos -> string:substr(H, string:len(String) + 3)
     end.
 
+%% @hidden
 get_header_value_test_() ->
     ?_assertEqual("test", get_header_value("Test", ["Foo: foo", "Test: test"])).
 
 %% @private
 %% @doc Calcualte the handshake challenge.
-%% @spec calc_challenge(Key1, Key2, Key3) -> Result
+%% @spec calc_challenge(string(), string(), string()) -> string()
 calc_challenge(Key1, Key2, Key3) ->
     {Digits1, []} = string:to_integer(concat_digits(Key1)),
     {Digits2, []} = string:to_integer(concat_digits(Key2)),
@@ -120,15 +125,17 @@ calc_challenge(Key1, Key2, Key3) ->
                              Key3/binary>>),
     Challenge.
 
+%% @hidden
 calc_challenge_test_() ->
     ?_assertEqual(<<249,214,215,98,131,120,84,118,243,69,68,91,56,235,101,215>>,
                   calc_challenge("89z sdhf 9sf", "fh siu is7f7t", <<"foo">>)).
 
 %% @private
 %% @doc Concatenates digits 0-9 of a string.
-%% @spec concat_digits(String) -> List
+%% @spec concat_digits(string()) -> list()
 concat_digits(String) -> [A || A <- String, A =< 57, A >= 48].
 
+%% @hidden
 concat_digits_test_() ->
     [?_assertEqual([], concat_digits("Foo bar")),
      ?_assertEqual("82", concat_digits("hiu sd8 2  hfs")),
@@ -136,9 +143,10 @@ concat_digits_test_() ->
 
 %% @private
 %% @doc Counts number of spaces in a string.
-%% @spec count_spaces(String) -> Integer
+%% @spec count_spaces(string()) -> integer()
 count_spaces(String) -> string:len([ A || A <- String, A =:= 32]).
 
+%% @hidden
 count_spaces_test_() ->
     [?_assertEqual(0, count_spaces("Foobar")),
      ?_assertEqual(1, count_spaces("Foo bar")),
