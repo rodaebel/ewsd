@@ -74,6 +74,8 @@ handle_cast({accepted, _Pid}, State=#server_state{}) ->
 %% @private
 %% @doc Handles all non call/cast messages.
 %% @spec handle_info(Info, State) -> {noreply, State}
+handle_info({'EXIT', _Pid, normal}, State) ->
+    {noreply, State};
 handle_info(Info, State) ->
     error_logger:info_msg("~p handle_info(~p, ~p)~n", [self(), Info, State]),
     {noreply, State}.
