@@ -14,9 +14,8 @@ init_handler() ->
     ets:new(clients, [public, named_table, ordered_set]),
     ok.
 
-%% @private
 %% @doc Handles Web Socket messages.
-%% @spec handle_message({Type, Socket, Data}) -> void()
+%% @spec handle_message({Type, Socket, Data}) -> any()
 handle_message({handshake, Socket, Data}) ->
     {ok, Response, Path} = websocket_lib:process_handshake(Data),
     ets:insert_new(clients, {Socket}),
@@ -26,6 +25,8 @@ handle_message({message, _Socket, Data}) ->
     Frame = [0, Data, 255],
     ets:foldl(fun({S}, _Acc) -> gen_tcp:send(S, Frame) end, notused, clients).
 
+%% @doc Handles closed Web Socket.
+%% @spec handle_close(Socket) -> any()
 handle_close(Socket) ->
     ets:delete_object(clients, {Socket}),
     error_logger:info_msg("~p Socket closed~n", [self()]).

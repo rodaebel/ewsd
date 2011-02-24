@@ -14,7 +14,7 @@ behaviour_info(_Other) ->
     undefined.
 
 %% @doc Server main loop.
-%% @spec loop({Handler, Type, Socket}) -> void()
+%% @spec loop({Handler, Type, Socket}) -> any()
 loop({Handler, Type, Socket}) ->
     case gen_tcp:recv(Socket, 0) of
         {ok, Data} ->
@@ -28,7 +28,7 @@ loop({Handler, Type, Socket}) ->
     end.
 
 %% @doc Handles Web Socket message.
-%% @spec handle_message(Msg) -> void()
+%% @spec handle_message(Msg) -> any()
 handle_message(_Msg) ->
     noreply.
 
