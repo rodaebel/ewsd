@@ -63,7 +63,7 @@ done
 ERL_OPTS="
     -setcookie $COOKIE \
     -pa $CWD/ebin \
-    -sname websocket \
+    -sname websocket@localhost \
     -s websocket"
 
 if [ "$MONITOR" = "false" ]; then
