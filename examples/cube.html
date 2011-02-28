@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Cube</title>
+    <style type="text/css">
+
+    body {
+      color: #111;
+      font-family: Helvetica, sans-serif;
+      font-size: 0.7em;
+      overflow: hidden;
+    }
+
+    #viewport {
+      position: absolute;
+      left: 0;
+      top: 10%;
+      width: 100%;
+      height: 90%;
+      -webkit-perspective: 700;
+    }
+
+    #shape {
+      position: absolute;
+      left: 350px;
+      top: 100px;
+      width: 300px;
+      height: 300px;
+      -webkit-transform-origin: 150px 150px -150px;
+      -webkit-transform: rotateX(0deg) rotateY(0deg);
+    }
+
+    #shape li > div {
+      background: none;
+    }
+
+    #shape li {
+      outline: 1px solid rgba(0, 0, 0, 0.5);
+    }
+
+    .cube {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      position: relative;
+      -webkit-transform-style: preserve-3d;
+    }
+
+    .cube li, .cube li > div {
+      margin: 0;
+      position: absolute;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .cube li > div {
+      left: 0;
+      top: 0;
+    }
+
+    .cube li.front {
+      background-color: rgba(100, 100, 100, 0.5);
+    }
+
+    .cube li.front > div {
+      padding-top: 145px;
+      text-align: center;
+    }
+
+    .cube li.back {
+      background-color: rgba(255, 0, 0, 0.5);
+      -webkit-transform: rotateX(90deg) translate3d(0,-100%,0) rotateX(-90deg);
+    }
+
+    .cube li.back > div {
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .cube li.top {
+      -webkit-transform: rotateX(-90deg);
+      -webkit-transform-origin: top left;
+    }
+
+    .cube li.top > div {
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .cube li.bottom {
+      -webkit-transform-origin: bottom left;
+      -webkit-transform: rotateX(90deg);
+    }
+
+    .cube li.bottom > div {
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .cube li.left {
+      -webkit-transform: rotateY(90deg);
+      -webkit-transform-origin: top left;
+    }
+
+    .cube li.left > div {
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .cube li.right {
+      -webkit-transform: rotateY(-90deg);
+      -webkit-transform-origin: top right;
+    }
+
+    .cube li.right > div {
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    </style>
+    <script type="text/javascript">
+
+    var ws;
+
+    // Check whether the Web Socket is ready
+    var checkWebSocketReadyState = function() {};
+
+    function init() {
+
+      var body = document.getElementsByTagName('body')[0];
+
+      function rotate(elem, x, y, scale) {
+        elem.style.webkitTransform = 'rotateX('+x+'deg) rotateY('+y+'deg) '
+                                   + 'scale3d('+scale+','+scale+','+scale+')';
+      }
+
+      if ("WebSocket" in window) {
+
+        ws = new WebSocket("ws://localhost:8888/foo/bar");
+
+        // Handle open event
+        ws.onopen = function(ev) {
+
+          body.innerHTML += "Web Socket connected<br>";
+
+        };
+
+        // Handle Web Socket message
+        ws.onmessage = function(ev) {
+
+          var elem = document.getElementById('shape');
+          var xyz = JSON.parse(ev.data);
+          var x = Math.round(xyz.x*360);
+          var y = Math.round(xyz.y*360);
+          rotate(elem, y, x, 1);
+
+        };
+ 
+        // Handle close event
+        ws.onclose = function(ev) {
+
+          body.innerHTML += "Web Socket closed<br>";
+
+        };
+
+        // Check whether the Web Socket is ready
+        checkWebSocketReadyState = function() {
+
+          if (ws.readyState != 1)
+            body.innerHTML += "Web Socket not ready<br>";
+        };
+
+        window.setTimeout("checkWebSocketReadyState();", 2000);
+
+      }
+
+    }
+    </script>
+  </head>
+  <body onLoad="init();">
+    <div id="viewport">
+      <ul id="shape" class="cube">
+        <li class="front"><div>+</div></li>
+        <li class="back"><div></div></li>
+        <li class="left"><div></div></li>
+        <li class="right"><div></div></li>
+        <li class="top"><div></div></li>
+        <li class="bottom"><div></div></li>
+      </ul>
+    </div>
+  </body>
+</html>
