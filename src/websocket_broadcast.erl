@@ -8,10 +8,16 @@
 %% API
 -export([init_handler/0, handle_message/1, handle_close/1]).
 
+-export([receiver/0]).
+
 %% @doc Initializes the handler.
 %% @spec init_handler() -> ok
 init_handler() ->
     ets:new(clients, [public, named_table, ordered_set]),
+    process_flag(trap_exit, true),
+    Pid = spawn_link(?MODULE, receiver, []),
+    register(websocket_broadcast, Pid),
+    error_logger:info_msg("~p ~p~n", [self(), Pid]),
     ok.
 
 %% @doc Handles Web Socket messages.
@@ -31,3 +37,17 @@ handle_message({message, _Socket, Data}) ->
 handle_close(Socket) ->
     ets:match_delete(clients, {Socket, '_'}),
     error_logger:info_msg("~p Socket closed~n", [self()]).
+
+%% @doc A simple receiver.
+receiver() ->
+    receive
+        {accelerometer, [X,Y,Z]} ->
+            String = lists:flatten(io_lib:format("{\"x\":~f,\"y\":~f,\"z\":~f}",
+                                                 [X,Y,Z])),
+            Frame = [0, list_to_binary(String), 255],
+            ets:foldl(fun({S, _}, _Acc) -> gen_tcp:send(S, Frame) end,
+                      notused, clients);
+        Any ->
+            error_logger:info_msg("~p ~p~n", [self(), Any])
+    end,
+    receiver().
