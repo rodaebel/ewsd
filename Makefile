@@ -11,7 +11,8 @@ clean:
 	rm -f ebin/*.beam
 
 docs:
-	@$(ERL) -noshell -run edoc_run application '$(APP)' '"."' '[]'
+	@$(ERL) -noshell -run edoc_run application '$(APP)' '"."' \
+	'[{private, true}]'
 
 clean-docs:
 	rm -f doc/edoc-info doc/*.html doc/*.css doc/*.png

@@ -39,6 +39,7 @@ handle_close(Socket) ->
     error_logger:info_msg("~p Socket closed~n", [self()]).
 
 %% @doc A simple receiver.
+%% @spec receiver() -> any()
 receiver() ->
     receive
         {accelerometer, [X,Y,Z]} ->
