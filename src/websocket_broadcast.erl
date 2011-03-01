@@ -43,9 +43,13 @@ handle_close(Socket) ->
 receiver() ->
     receive
         {accelerometer, [X,Y,Z]} ->
-            String = lists:flatten(io_lib:format("{\"x\":~f,\"y\":~f,\"z\":~f}",
-                                                 [X,Y,Z])),
-            Frame = [0, list_to_binary(String), 255],
+            Data = io_lib:format("{\"x\":~f,\"y\":~f,\"z\":~f}", [X,Y,Z]),
+            Frame = [0, list_to_binary(lists:flatten(Data)), 255],
+            ets:foldl(fun({S, _}, _Acc) -> gen_tcp:send(S, Frame) end,
+                      notused, clients);
+        {scale, [Scale]} ->
+            Data = io_lib:format("{\"s\":~f}", [Scale]),
+            Frame = [0, list_to_binary(lists:flatten(Data)), 255],
             ets:foldl(fun({S, _}, _Acc) -> gen_tcp:send(S, Frame) end,
                       notused, clients);
         Any ->

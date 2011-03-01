@@ -142,14 +142,23 @@
 
         };
 
+        var x, y, s = 0.1;
+
         // Handle Web Socket message
         ws.onmessage = function(ev) {
 
           var elem = document.getElementById('shape');
-          var xyz = JSON.parse(ev.data);
-          var x = Math.round(xyz.x*360);
-          var y = Math.round(xyz.y*360);
-          rotate(elem, y, x, 1);
+          var data = JSON.parse(ev.data);
+
+          if (data.x) {
+            x = Math.round(data.x*360);
+            y = Math.round(data.y*360);
+          }
+          else if (data.s) {
+            s = data.s;
+          }
+
+          rotate(elem, y, x, s);
 
         };
  
