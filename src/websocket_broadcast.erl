@@ -17,7 +17,6 @@ init_handler() ->
     process_flag(trap_exit, true),
     Pid = spawn_link(?MODULE, receiver, []),
     register(websocket_broadcast, Pid),
-    error_logger:info_msg("~p ~p~n", [self(), Pid]),
     ok.
 
 %% @doc Handles Web Socket messages.
