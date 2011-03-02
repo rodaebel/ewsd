@@ -28,9 +28,7 @@ handle_message({handshake, Socket, Data}) ->
     gen_tcp:send(Socket, Response),
     error_logger:info_msg("~p Socket connected (~s)~n", [self(), Path]);
 handle_message({message, _Socket, Data}) ->
-    Frame = [0, Data, 255],
-    ets:foldl(fun({S, _}, _Acc) -> gen_tcp:send(S, Frame) end,
-              notused, clients).
+    broadcast(Data).
 
 %% @doc Handles closed Web Socket.
 %% @spec handle_close(Socket) -> any()
@@ -43,16 +41,17 @@ handle_close(Socket) ->
 receiver() ->
     receive
         {accelerometer, [X,Y,Z]} ->
-            Data = io_lib:format("{\"x\":~f,\"y\":~f,\"z\":~f}", [X,Y,Z]),
-            Frame = [0, list_to_binary(lists:flatten(Data)), 255],
-            ets:foldl(fun({S, _}, _Acc) -> gen_tcp:send(S, Frame) end,
-                      notused, clients);
+            broadcast(io_lib:format("{\"x\":~f,\"y\":~f,\"z\":~f}", [X,Y,Z]));
         {scale, [Scale]} ->
-            Data = io_lib:format("{\"s\":~f}", [Scale]),
-            Frame = [0, list_to_binary(lists:flatten(Data)), 255],
-            ets:foldl(fun({S, _}, _Acc) -> gen_tcp:send(S, Frame) end,
-                      notused, clients);
+            broadcast(io_lib:format("{\"s\":~f}", [Scale]));
         Any ->
             error_logger:info_msg("~p ~p~n", [self(), Any])
     end,
     receiver().
+
+%% @private
+%% @doc Broadcasts Web Socket messages.
+%% @spec broadcast(Data) -> ok
+broadcast(Data) ->
+    F = [0, list_to_binary(lists:flatten(Data)), 255],
+    ets:foldl(fun({S, _}, _Acc) -> gen_tcp:send(S, F) end, notused, clients).
