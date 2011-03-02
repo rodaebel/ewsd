@@ -12,6 +12,10 @@
       overflow: hidden;
     }
 
+    pre {
+      font-size: 1.2em;
+    }
+
     #viewport {
       position: absolute;
       left: 0;
@@ -122,9 +126,15 @@
     // Check whether the Web Socket is ready
     var checkWebSocketReadyState = function() {};
 
+    function decRound(n) {
+	  return Math.round(n*10)/10;
+    }
+
     function init() {
 
-      var body = document.getElementsByTagName('body')[0];
+      var debug = document.getElementById('debug');
+
+      var log = document.getElementById('log');
 
       function rotate(elem, x, y, scale) {
         elem.style.webkitTransform = 'rotateX('+x+'deg) rotateY('+y+'deg) '
@@ -138,34 +148,51 @@
         // Handle open event
         ws.onopen = function(ev) {
 
-          body.innerHTML += "Web Socket connected<br>";
+          log.innerHTML += "Web Socket connected<br>";
 
         };
 
-        var x, y, s = 0.1;
+        var x_velocity = y_velocity = 0;
+        var x = y = 0;
+        var scale = 0.1;
 
         // Handle Web Socket message
         ws.onmessage = function(ev) {
 
           var elem = document.getElementById('shape');
+
           var data = JSON.parse(ev.data);
 
           if (data.x) {
-            x = Math.round(data.x*360);
-            y = Math.round(data.y*360);
-          }
-          else if (data.s) {
-            s = data.s;
+            if (document.getElementById('smooth').checked) {
+              x_velocity = decRound(data.x);
+              y_velocity = decRound(data.y);
+              x += Math.pow(x_velocity, 3);
+              y += Math.pow(y_velocity, 3);
+            }
+            else {
+              x = Math.round(data.x*180);
+              y = Math.round(data.y*180);
+            }
           }
 
-          rotate(elem, y, x, s);
+          if (data.s)
+            scale = data.s;
+
+          debug.innerHTML = "Velocity:\r\n";
+          debug.innerHTML += "x: "+x_velocity+" y: "+y_velocity+"\r\n";
+          debug.innerHTML += "Scale:\r\n";
+          debug.innerHTML += scale+"\r\n";
+
+          rotate(elem, y, x, scale);
 
         };
  
         // Handle close event
         ws.onclose = function(ev) {
 
-          body.innerHTML += "Web Socket closed<br>";
+          log.innerHTML += "Web Socket closed<br>";
+          document.getElementById('smooth').disabled = "disabled";
 
         };
 
@@ -173,7 +200,7 @@
         checkWebSocketReadyState = function() {
 
           if (ws.readyState != 1)
-            body.innerHTML += "Web Socket not ready<br>";
+            log.innerHTML += "Web Socket not ready<br>";
         };
 
         window.setTimeout("checkWebSocketReadyState();", 2000);
@@ -184,6 +211,9 @@
     </script>
   </head>
   <body onLoad="init();">
+    <input id="smooth" type="checkbox" checked />Smooth<br />
+    <pre id="debug"></pre>
+    <pre id="log"></pre>
     <div id="viewport">
       <ul id="shape" class="cube">
         <li class="front"><div>+</div></li>
