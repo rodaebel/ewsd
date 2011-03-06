@@ -26,8 +26,8 @@ handle_message({handshake, Socket, Data}) ->
     ets:insert_new(clients, {Socket, Path}),
     gen_tcp:send(Socket, Response),
     error_logger:info_msg("~p Socket connected (~s)~n", [self(), Path]);
-handle_message({message, _Socket, Data}) ->
-    broadcast(Data).
+handle_message({message, _Socket, Bin}) ->
+    broadcast(Bin).
 
 %% @doc Handles closed Web Socket.
 %% @spec handle_close(Socket) -> any()
@@ -51,6 +51,13 @@ receiver() ->
 %% @private
 %% @doc Broadcasts Web Socket messages.
 %% @spec broadcast(Data) -> ok
+broadcast(Data) when is_binary(Data) ->
+    broadcast_frame([0, Data, 255]);
 broadcast(Data) ->
-    F = [0, list_to_binary(lists:flatten(Data)), 255],
+    broadcast_frame([0, list_to_binary(lists:flatten(Data)), 255]).
+
+%% @private
+%% @doc Broadcasts data frame to the Web Socket clients.
+%% @spec broadcast_frame(F) -> ok
+broadcast_frame(F) ->
     ets:foldl(fun({S, _}, _Acc) -> gen_tcp:send(S, F) end, notused, clients).

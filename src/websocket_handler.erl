@@ -18,7 +18,13 @@ behaviour_info(_Other) ->
 loop({Handler, Type, Socket}) ->
     case gen_tcp:recv(Socket, 0) of
         {ok, Data} ->
-            Handler:handle_message({Type, Socket, Data}),
+            L = size(Data) - 2,
+            case Data of
+                <<0,Bin:L/binary,255>> ->
+                    Handler:handle_message({Type, Socket, Bin});
+                Any ->
+                    Handler:handle_message({Type, Socket, Any})
+            end,
             loop({Handler, message, Socket});
         {error, closed} ->
             Handler:handle_close(Socket);
