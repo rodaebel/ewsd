@@ -136,6 +136,8 @@
 
       var log = document.getElementById('log');
 
+      var slider = document.getElementById('slider');
+
       function rotate(elem, x, y, scale) {
         elem.style.webkitTransform = 'rotateX('+x+'deg) rotateY('+y+'deg) '
                                    + 'scale3d('+scale+','+scale+','+scale+')';
@@ -176,8 +178,10 @@
             }
           }
 
-          if (data.s)
+          if (data.s) {
             scale = data.s;
+            slider.value = scale;
+          }
 
           debug.innerHTML = "Velocity:\r\n";
           debug.innerHTML += "x: "+x_velocity+" y: "+y_velocity+"\r\n";
@@ -196,6 +200,12 @@
 
         };
 
+        slider.onchange = function(ev) {
+
+          ws.send(JSON.stringify({"s":parseFloat(slider.value)}));
+
+        }
+
         // Check whether the Web Socket is ready
         checkWebSocketReadyState = function() {
 
@@ -212,6 +222,7 @@
   </head>
   <body onLoad="init();">
     <input id="smooth" type="checkbox" checked />Smooth<br />
+    <input id="slider" type="range"  min="0" max="3" step="0.1" />
     <pre id="debug"></pre>
     <pre id="log"></pre>
     <div id="viewport">
