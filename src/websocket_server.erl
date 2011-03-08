@@ -17,7 +17,7 @@
 
 -include("websocket.hrl").
 
--define(SERVER, ?MODULE). 
+-define(SERVER, ?MODULE).
 
 %% @doc Starts the server.
 %% @spec start_link() -> {ok, Pid} | ignore | {error, Reason}
@@ -51,7 +51,8 @@ accept_loop({Server, Socket, Handler}) ->
     {ok, S} = gen_tcp:accept(Socket),
     gen_server:cast(Server, {accepted, self()}),
     websocket_handler:loop({Handler, handshake, S}).
-    
+
+%% @private
 %% @doc Spawns a new child process for the new connection.
 %% @spec accept(State) -> State
 accept(State = #server_state{socket=Socket, handler=Handler}) ->
