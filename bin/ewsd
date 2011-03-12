@@ -67,9 +67,9 @@ ERL_OPTS="
     -s websocket"
 
 if [ "$MONITOR" = "false" ]; then
-    eval $ERL $ERL_OPTS $DETACHED_OPTION start -noshell
+    eval $ERL $ERL_OPTS $DETACHED_OPTION -noshell
 else
-    eval $ERL $ERL_OPTS -boot start_sasl -run appmon start
+    eval $ERL $ERL_OPTS -boot start_sasl -run appmon
 fi
 
 exit 0;
