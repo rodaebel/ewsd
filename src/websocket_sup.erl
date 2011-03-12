@@ -20,5 +20,6 @@ start_link() ->
 %% @spec init(Args) -> {ok, {SupFlags, ChildSpecs}} | ignore | {error, Reason}
 init([]) ->
     Server = {websocket_server, {websocket_server, start_link, []},
-	      permanent, 2000, worker, [websocket_server]},
+              permanent, 2000, worker, [websocket_server]},
+
     {ok, {{one_for_one, 3, 10}, [Server]}}.
