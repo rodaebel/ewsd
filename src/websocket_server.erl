@@ -25,14 +25,14 @@ start_link() ->
     {ok, Address} = application:get_env(ip),
     {ok, Port} = application:get_env(port),
     {ok, Module} = application:get_env(handler_module),
-    Module:init_handler(),
     State = #server_state{ip=Address, port=Port, handler=Module},
     gen_server:start_link({local, ?SERVER}, ?MODULE, State, []).
 
 %% @private
 %% @doc Initializes the server.
 %% @spec init(Args) -> {ok, State} | {stop, Reason}
-init(State = #server_state{ip=Address, port=Port}) ->
+init(State = #server_state{ip=Address, port=Port, handler=Handler}) ->
+    Handler:init_handler(),
     Options = [binary, {ip, Address}, {active, false}, {reuseaddr, true},
                {packet, 0}],
     case gen_tcp:listen(Port, Options) of

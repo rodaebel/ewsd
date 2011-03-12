@@ -13,11 +13,7 @@
 %% @doc Initializes the handler.
 %% @spec init_handler() -> ok
 init_handler() ->
-    ets:new(clients, [public, named_table, ordered_set]),
-    process_flag(trap_exit, true),
-    Pid = spawn_link(?MODULE, receiver, []),
-    register(websocket_broadcast, Pid),
-    ok.
+    ets:new(clients, [public, named_table, ordered_set]).
 
 %% @doc Handles Web Socket messages.
 %% @spec handle_message({Type, Socket, Data}) -> any()
