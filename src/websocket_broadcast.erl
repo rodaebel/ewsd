@@ -8,12 +8,15 @@
 %% API
 -export([init_handler/0, handle_message/1, handle_close/1]).
 
--export([receiver/0]).
+-export([callback/1]).
+
+-define(KARAJAN_SERVER, {karajan_server, karajan@localhost}).
 
 %% @doc Initializes the handler.
 %% @spec init_handler() -> ok
 init_handler() ->
-    ets:new(clients, [public, named_table, ordered_set]).
+    ets:new(clients, [public, named_table, ordered_set]),
+    {ok, callback}.
 
 %% @doc Handles Web Socket messages.
 %% @spec handle_message({Type, Socket, Data}) -> any()
@@ -31,18 +34,12 @@ handle_close(Socket) ->
     ets:match_delete(clients, {Socket, '_'}),
     error_logger:info_msg("~p Socket closed~n", [self()]).
 
-%% @doc A simple receiver.
-%% @spec receiver() -> any()
-receiver() ->
-    receive
-        {accelerometer, [X,Y,Z]} ->
-            broadcast(io_lib:format("{\"x\":~f,\"y\":~f,\"z\":~f}", [X,Y,Z]));
-        {scale, [Scale]} ->
-            broadcast(io_lib:format("{\"s\":~f}", [Scale]));
-        Any ->
-            error_logger:info_msg("~p ~p~n", [self(), Any])
-    end,
-    receiver().
+%% @doc The optional callback method.
+%% @spec callback() -> any()
+callback({accelerometer, [X,Y,Z]}) ->
+    broadcast(io_lib:format("{\"x\":~f,\"y\":~f,\"z\":~f}", [X,Y,Z]));
+callback({scale, [Scale]}) ->
+    broadcast(io_lib:format("{\"s\":~f}", [Scale])).
 
 %% @private
 %% @doc Broadcasts Web Socket messages.

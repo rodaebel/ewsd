@@ -1,1 +1,0 @@
--record(server_state, {port, handler, ip=any, socket=null}).

@@ -17,6 +17,8 @@
 
 -include("websocket.hrl").
 
+-record(state, {port, handler, ip=any, socket=null, callback=null}).
+
 -define(SERVER, ?MODULE).
 
 %% @doc Starts the server.
@@ -25,20 +27,20 @@ start_link() ->
     {ok, Address} = application:get_env(ip),
     {ok, Port} = application:get_env(port),
     {ok, Module} = application:get_env(handler_module),
-    State = #server_state{ip=Address, port=Port, handler=Module},
+    State = #state{ip=Address, port=Port, handler=Module},
     gen_server:start_link({local, ?SERVER}, ?MODULE, State, []).
 
 %% @private
 %% @doc Initializes the server.
 %% @spec init(Args) -> {ok, State} | {stop, Reason}
-init(State = #server_state{ip=Address, port=Port, handler=Handler}) ->
-    Handler:init_handler(),
+init(State = #state{ip=Address, port=Port, handler=Handler}) ->
+    {ok, Callback} = Handler:init_handler(),
     Options = [binary, {ip, Address}, {active, false}, {reuseaddr, true},
                {packet, 0}],
     case gen_tcp:listen(Port, Options) of
         {ok, Socket} ->
             error_logger:info_msg("~p Listening on port ~p~n", [self(), Port]),
-            NewState = State#server_state{socket = Socket},
+            NewState = State#state{socket = Socket, callback = Callback},
             {ok, accept(NewState)};
         {error, Reason} ->
             error_logger:error_report({?MODULE, tcp_listen, Reason}),
@@ -55,7 +57,7 @@ accept_loop({Server, Socket, Handler}) ->
 %% @private
 %% @doc Spawns a new child process for the new connection.
 %% @spec accept(State) -> State
-accept(State = #server_state{socket=Socket, handler=Handler}) ->
+accept(State = #state{socket=Socket, handler=Handler}) ->
     process_flag(trap_exit, true),
     spawn_link(?MODULE, accept_loop, [{self(), Socket, Handler}]),
     State.
@@ -68,9 +70,12 @@ handle_call(_Request, _From, State) ->
 
 %% @private
 %% @doc Handles cast messages.
-%% @spec handle_cast(Msg, State) -> {noreply, accept(State)}
-handle_cast({accepted, _Pid}, State=#server_state{}) ->
-    {noreply, accept(State)}.
+%% @spec handle_cast(Msg, State) -> {noreply, State}
+handle_cast({accepted, _Pid}, State = #state{}) ->
+    {noreply, accept(State)};
+handle_cast(Msg, State = #state{handler=Handler, callback=Fun}) ->
+    Handler:Fun(Msg),
+    {noreply, State}.
 
 %% @private
 %% @doc Handles all non call/cast messages.
