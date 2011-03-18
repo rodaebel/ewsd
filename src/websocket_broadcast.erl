@@ -26,6 +26,13 @@ handle_message({handshake, Socket, Data}) ->
     gen_tcp:send(Socket, Response),
     error_logger:info_msg("~p Socket connected (~s)~n", [self(), Path]);
 handle_message({message, _Socket, Bin}) ->
+    try json_parser:dvm_parser(Bin) of
+        {ok,{struct,[{_,Scale}]},_} ->
+            gen_server:cast(?KARAJAN_SERVER, {message, "/1/scale", [Scale]})
+    catch
+        _ ->
+            error_logger:info_msg("~p JSON expected~n", [self()])
+    end,
     broadcast(Bin).
 
 %% @doc Handles closed Web Socket.
