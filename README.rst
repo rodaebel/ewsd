@@ -54,9 +54,15 @@ A typical Web Socket handler consists of the following methods::
   init_handler, handle_message, handle_close
 
 Included in this distribution you find a brief example of how to implement a
-broadcast handler.
+simple echo handler.
 
-A Web Socket handler module must be configered in the `websocket.app` file by
-adding this tuple `{handler_module, ModuleName}` to the environment::
+The Web Socket handler module must be configered in the `websocket.app` file by
+adding this tuple `{handler, ModuleName}` to the environment::
 
-  {env, [{ip, any}, {port, 8888}, {handler_module, websocket_broadcast}]}
+  {env, [{ip, any}, {port, 8888}, {handler, websocket_echo}]}
+
+Alternatively, a configuration file can be specified. The examples directory
+contains a broadcast handler. In order to run the Web Socket server with the
+related configuration file, enter the following command::
+
+  $ bin/ewsd --config=/absolute/path/to/examples/broadcast.config
