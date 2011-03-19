@@ -5,6 +5,7 @@ cd "$PWD";
 BASENAME=`basename $0`
 MONITOR="false"
 DETACHED_OPTION=""
+CONFIG=""
 COOKIE="cookie"
 ERL=erl
 
@@ -28,6 +29,9 @@ do
 
    case "$_option" in
 
+   --config=*)
+      CONFIG="$_optarg" ;;
+
    --cookie=*)
       COOKIE="$_optarg" ;;
 
@@ -39,6 +43,7 @@ do
       cat << EOF
 
 Options:
+      --config=FILE     use this config file
       --cookie=COOKIE   use this cookie
    -d,--detached        starts the service detached from the system console
    -h,--help            display this message
@@ -60,10 +65,15 @@ EOF
    esac
 done
 
+if (`test -r "$CONFIG"`); then
+    CONFIG="-config $CONFIG";
+fi
+
 ERL_OPTS="
     -setcookie $COOKIE \
     -pa $CWD/ebin \
     -sname websocket@localhost \
+    $CONFIG
     -s websocket"
 
 if [ "$MONITOR" = "false" ]; then

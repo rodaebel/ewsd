@@ -24,9 +24,9 @@
 %% @doc Starts the server.
 %% @spec start_link() -> {ok, Pid} | ignore | {error, Reason}
 start_link() ->
-    {ok, Address} = application:get_env(ip),
-    {ok, Port} = application:get_env(port),
-    {ok, Module} = application:get_env(handler_module),
+    {ok, Address} = application:get_env(websocket, ip),
+    {ok, Port} = application:get_env(websocket, port),
+    {ok, Module} = application:get_env(websocket, handler),
     State = #state{ip=Address, port=Port, handler=Module},
     gen_server:start_link({local, ?SERVER}, ?MODULE, State, []).
 
