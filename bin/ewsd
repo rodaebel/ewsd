@@ -1,7 +1,5 @@
 #!/bin/sh
-cd `dirname $0`;
-CWD=`dirname "$PWD" | sed -e 's, ,\\\\ ,g'`;
-cd "$PWD";
+
 BASENAME=`basename $0`
 MONITOR="false"
 DETACHED_OPTION=""
@@ -65,13 +63,21 @@ EOF
    esac
 done
 
-if (`test -r "$CONFIG"`); then
+if [[ ! $CONFIG =~ /^\/.*/ ]]; then
+    CONFIG=$PWD/$CONFIG;
+fi
+
+if test -f "$CONFIG"; then
     CONFIG="-config $CONFIG";
 fi
 
+cd `dirname $0`;
+ROOT=`dirname "$PWD" | sed -e 's, ,\\\\ ,g'`;
+cd "$PWD";
+
 ERL_OPTS="
     -setcookie $COOKIE \
-    -pa $CWD/ebin \
+    -pa $ROOT/ebin \
     -sname websocket@localhost \
     $CONFIG
     -s websocket"

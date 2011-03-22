@@ -65,4 +65,4 @@ Alternatively, a configuration file can be specified. The examples directory
 contains a broadcast handler. In order to run the Web Socket server with the
 related configuration file, enter the following command::
 
-  $ bin/ewsd --config=/absolute/path/to/examples/broadcast.config
+  $ bin/ewsd --config=examples/broadcast.config
