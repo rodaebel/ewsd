@@ -69,6 +69,8 @@ fi
 
 if test -f "$CONFIG"; then
     CONFIG="-config $CONFIG";
+else
+    CONFIG=""
 fi
 
 cd `dirname $0`;
