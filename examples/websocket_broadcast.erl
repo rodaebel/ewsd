@@ -31,7 +31,8 @@ handle_message({message, _Socket, Bin}) ->
             gen_server:cast(?KARAJAN_SERVER, {message, "/1/scale", [Scale]})
     catch
         _ ->
-            error_logger:info_msg("~p JSON expected~n", [self()])
+            Message = binary_to_list(Bin),
+            error_logger:info_msg("~p Received: ~s~n", [self(), Message])
     end,
     broadcast(Bin).
 
