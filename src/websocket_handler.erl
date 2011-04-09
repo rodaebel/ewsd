@@ -14,9 +14,9 @@ behaviour_info(_Other) ->
     undefined.
 
 %% @doc Server main loop.
-%% @spec loop({Handler, Type, Socket}) -> any()
-loop({Handler, Type, Socket}) ->
-    case gen_tcp:recv(Socket, 0) of
+%% @spec loop({Handler, Type, Socket, Timeout}) -> any()
+loop({Handler, Type, Socket, Timeout}) ->
+    case gen_tcp:recv(Socket, 0, Timeout) of
         {ok, Data} ->
             L = size(Data) - 2,
             case Data of
@@ -25,9 +25,12 @@ loop({Handler, Type, Socket}) ->
                 Any ->
                     Handler:handle_message({Type, Socket, Any})
             end,
-            loop({Handler, message, Socket});
+            loop({Handler, message, Socket, Timeout});
         {error, closed} ->
             Handler:handle_close(Socket);
+        {error, timeout} ->
+            Handler:handle_close(Socket),
+            error_logger:info_msg("~p Connection timeout~n", [self()]);
         {error, Reason} ->
             Handler:handle_close(Socket),
             error_logger:error_report({?MODULE, loop, Reason})

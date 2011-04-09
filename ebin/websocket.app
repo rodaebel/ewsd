@@ -7,6 +7,6 @@
   {registered, [websocket_sup, websocket_server]},
   {applications, [kernel, stdlib]},
   {mod, {websocket_app, []}},
-  {env, [{ip, any}, {port, 8888}, {handler, websocket_echo}]}
+  {env, [{ip, any}, {port, 8888}, {handler, websocket_echo}, {timeout, 10000}]}
  ]}.
 %% vim: set filetype=erlang :

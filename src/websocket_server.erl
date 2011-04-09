@@ -17,7 +17,7 @@
 
 -include("websocket.hrl").
 
--record(state, {port, handler, ip=any, socket=null, callback=null}).
+-record(state, {ip, port, socket, handler, callback=null, timeout=infinity}).
 
 -define(SERVER, ?MODULE).
 
@@ -27,39 +27,40 @@ start_link() ->
     {ok, Address} = application:get_env(websocket, ip),
     {ok, Port} = application:get_env(websocket, port),
     {ok, Module} = application:get_env(websocket, handler),
-    State = #state{ip=Address, port=Port, handler=Module},
+    {ok, Timeout} = application:get_env(websocket, timeout),
+    State = #state{ip=Address, port=Port, handler=Module, timeout=Timeout},
     gen_server:start_link({local, ?SERVER}, ?MODULE, State, []).
 
 %% @private
 %% @doc Initializes the server.
 %% @spec init(Args) -> {ok, State} | {stop, Reason}
-init(State = #state{ip=Address, port=Port, handler=Handler}) ->
+init(State = #state{ip=Address, port=Port, handler=Handler, timeout=Timeout}) ->
     {ok, Callback} = Handler:init_handler(),
     Options = [binary, {ip, Address}, {active, false}, {reuseaddr, true},
                {packet, 0}],
     case gen_tcp:listen(Port, Options) of
         {ok, Socket} ->
             error_logger:info_msg("~p Listening on port ~p~n", [self(), Port]),
-            NewState = State#state{socket = Socket, callback = Callback},
-            {ok, accept(NewState)};
+            S = State#state{socket=Socket, callback=Callback, timeout=Timeout},
+            {ok, accept(S)};
         {error, Reason} ->
             error_logger:error_report({?MODULE, tcp_listen, Reason}),
             {stop, {?MODULE, tcp_listen, Reason}}
     end.
 
 %% @doc Accepts TCP connections.
-%% @spec accept_loop({Server, Socket, Handler}) -> any()
-accept_loop({Server, Socket, Handler}) ->
+%% @spec accept_loop({Server, Socket, Handler, Timeout}) -> any()
+accept_loop({Server, Socket, Handler, Timeout}) ->
     {ok, S} = gen_tcp:accept(Socket),
     gen_server:cast(Server, {accepted, self()}),
-    websocket_handler:loop({Handler, handshake, S}).
+    websocket_handler:loop({Handler, handshake, S, Timeout}).
 
 %% @private
 %% @doc Spawns a new child process for the new connection.
 %% @spec accept(State) -> State
-accept(State = #state{socket=Socket, handler=Handler}) ->
+accept(State = #state{socket=Socket, handler=Handler, timeout=Timeout}) ->
     process_flag(trap_exit, true),
-    spawn_link(?MODULE, accept_loop, [{self(), Socket, Handler}]),
+    spawn_link(?MODULE, accept_loop, [{self(), Socket, Handler, Timeout}]),
     State.
 
 %% @private
