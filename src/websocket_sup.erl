@@ -16,6 +16,7 @@
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
+%% @private
 %% @doc Initializes the supervisor.
 %% @spec init(Args) -> {ok, {SupFlags, ChildSpecs}} | ignore | {error, Reason}
 init([]) ->

@@ -48,6 +48,7 @@ init(State = #state{ip=Address, port=Port, handler=Handler, timeout=Timeout}) ->
             {stop, {?MODULE, tcp_listen, Reason}}
     end.
 
+%% @private
 %% @doc Accepts TCP connections.
 %% @spec accept_loop({Server, Socket, Handler, Timeout}) -> any()
 accept_loop({Server, Socket, Handler, Timeout}) ->
