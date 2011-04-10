@@ -53,13 +53,13 @@ A typical Web Socket handler consists of the following methods::
 
   init_handler, handle_message, handle_close
 
-Included in this distribution you find a brief example of how to implement a
+Included in this distribution you find a brief example on how to implement a
 simple echo handler.
 
 The Web Socket handler module must be configered in the `websocket.app` file by
 adding this tuple `{handler, ModuleName}` to the environment::
 
-  {env, [{ip, any}, {port, 8888}, {handler, websocket_echo}]}
+  {env, [{ip, any}, {port, 8888}, {handler, websocket_echo}, {timeout, 5000}]}
 
 Alternatively, a configuration file can be specified. The examples directory
 contains a broadcast handler. In order to run the Web Socket server with the
