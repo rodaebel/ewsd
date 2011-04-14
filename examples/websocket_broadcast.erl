@@ -42,8 +42,8 @@ handle_push({scale, [Scale]}) ->
     broadcast(io_lib:format("{\"s\":~f}", [Scale])).
 
 %% @doc Handles closed Web Socket.
-%% @spec handle_close(Socket) -> any()
-handle_close(Socket) ->
+%% @spec handle_close(Msg) -> any()
+handle_close({_, Socket}) ->
     ets:match_delete(clients, {Socket, '_'}),
     error_logger:info_msg("~p Socket closed~n", [self()]).
 

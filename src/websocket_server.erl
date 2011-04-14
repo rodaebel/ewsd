@@ -76,7 +76,7 @@ handle_call(_Request, _From, State) ->
 handle_cast({accepted, _Pid}, State = #state{}) ->
     {noreply, accept(State)};
 handle_cast(Msg, State = #state{handler=Handler}) ->
-    Handler:handle_push(Msg),
+    websocket_handler:push(Handler, Msg),
     {noreply, State}.
 
 %% @private

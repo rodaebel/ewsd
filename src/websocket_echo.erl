@@ -28,6 +28,8 @@ handle_push(_Msg) ->
     noreply.
 
 %% @doc Handles closed Web Socket.
-%% @spec handle_close(Socket) -> any()
-handle_close(_Socket) ->
-    error_logger:info_msg("~p Socket closed~n", [self()]).
+%% @spec handle_close(Msg) -> any()
+handle_close({closed, _Socket}) ->
+    error_logger:info_msg("~p Socket closed~n", [self()]);
+handle_close({timeout, _Socket}) ->
+    error_logger:info_msg("~p Socket closed (timeout)~n", [self()]).
