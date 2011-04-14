@@ -51,7 +51,7 @@ some convenience for developing new Web Socket handlers.
 
 A typical Web Socket handler consists of the following methods::
 
-  init_handler, handle_message, handle_close
+  init_handler, handle_message, handle_push, handle_close
 
 Included in this distribution you find a brief example on how to implement a
 simple echo handler.
