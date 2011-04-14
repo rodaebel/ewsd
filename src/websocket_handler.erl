@@ -4,12 +4,14 @@
 -module(websocket_handler).
 
 %% API
--export([behaviour_info/1, loop/1, handle_message/1, handle_close/1]).
+-export([behaviour_info/1, loop/1, handle_message/1, handle_push/1,
+         handle_close/1]).
 
 %% @doc Defines the Web Socket handler behaviour.
 %% @spec behaviour_info(callbacks) -> [] | undefined
 behaviour_info(callbacks) ->
-    [{init_handler, 0}, {handle_message, 1}, {handle_close, 1}];
+    [{init_handler, 0}, {handle_message, 1}, {handle_push, 1},
+     {handle_close, 1}];
 behaviour_info(_Other) ->
     undefined.
 
@@ -41,7 +43,12 @@ loop({Handler, Type, Socket, Timeout}) ->
 handle_message(_Msg) ->
     noreply.
 
+%% @doc Handles push messages.
+%% @spec handle_push(Msg) -> any()
+handle_push(_Msg) ->
+    noreply.
+
 %% @doc Handles closed Web Socket.
-%% @spec handle_close(Socket) -> void()
+%% @spec handle_close(Socket) -> any()
 handle_close(_Socket) ->
     noreply.

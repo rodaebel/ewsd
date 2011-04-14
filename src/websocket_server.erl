@@ -17,7 +17,7 @@
 
 -include("websocket.hrl").
 
--record(state, {ip, port, socket, handler, callback=null, timeout=infinity}).
+-record(state, {ip, port, socket, handler, timeout=infinity}).
 
 -define(SERVER, ?MODULE).
 
@@ -35,13 +35,13 @@ start_link() ->
 %% @doc Initializes the server.
 %% @spec init(Args) -> {ok, State} | {stop, Reason}
 init(State = #state{ip=Address, port=Port, handler=Handler, timeout=Timeout}) ->
-    {ok, Callback} = Handler:init_handler(),
+    ok = Handler:init_handler(),
     Options = [binary, {ip, Address}, {active, false}, {reuseaddr, true},
                {packet, 0}],
     case gen_tcp:listen(Port, Options) of
         {ok, Socket} ->
             error_logger:info_msg("~p Listening on port ~p~n", [self(), Port]),
-            S = State#state{socket=Socket, callback=Callback, timeout=Timeout},
+            S = State#state{socket=Socket, timeout=Timeout},
             {ok, accept(S)};
         {error, Reason} ->
             error_logger:error_report({?MODULE, tcp_listen, Reason}),
@@ -75,8 +75,8 @@ handle_call(_Request, _From, State) ->
 %% @spec handle_cast(Msg, State) -> {noreply, State}
 handle_cast({accepted, _Pid}, State = #state{}) ->
     {noreply, accept(State)};
-handle_cast(Msg, State = #state{handler=Handler, callback=Fun}) ->
-    Handler:Fun(Msg),
+handle_cast(Msg, State = #state{handler=Handler}) ->
+    Handler:handle_push(Msg),
     {noreply, State}.
 
 %% @private

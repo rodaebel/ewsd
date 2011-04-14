@@ -6,9 +6,7 @@
 -behaviour(websocket_handler).
 
 %% API
--export([init_handler/0, handle_message/1, handle_close/1]).
-
--export([callback/1]).
+-export([init_handler/0, handle_message/1, handle_push/1, handle_close/1]).
 
 -define(KARAJAN_SERVER, {karajan_server, karajan@localhost}).
 
@@ -16,7 +14,7 @@
 %% @spec init_handler() -> ok
 init_handler() ->
     ets:new(clients, [public, named_table, ordered_set]),
-    {ok, callback}.
+    ok.
 
 %% @doc Handles Web Socket messages.
 %% @spec handle_message({Type, Socket, Data}) -> any()
@@ -36,18 +34,18 @@ handle_message({message, _Socket, Bin}) ->
     end,
     broadcast(Bin).
 
+%% @doc Handles push messages.
+%% @spec handle_push(Msg) -> any()
+handle_push({accelerometer, [X,Y,Z]}) ->
+    broadcast(io_lib:format("{\"x\":~f,\"y\":~f,\"z\":~f}", [X,Y,Z]));
+handle_push({scale, [Scale]}) ->
+    broadcast(io_lib:format("{\"s\":~f}", [Scale])).
+
 %% @doc Handles closed Web Socket.
 %% @spec handle_close(Socket) -> any()
 handle_close(Socket) ->
     ets:match_delete(clients, {Socket, '_'}),
     error_logger:info_msg("~p Socket closed~n", [self()]).
-
-%% @doc The optional callback method.
-%% @spec callback() -> any()
-callback({accelerometer, [X,Y,Z]}) ->
-    broadcast(io_lib:format("{\"x\":~f,\"y\":~f,\"z\":~f}", [X,Y,Z]));
-callback({scale, [Scale]}) ->
-    broadcast(io_lib:format("{\"s\":~f}", [Scale])).
 
 %% @private
 %% @doc Broadcasts Web Socket messages.
