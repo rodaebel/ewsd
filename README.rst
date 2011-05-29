@@ -66,3 +66,5 @@ contains a broadcast handler. In order to run the Web Socket server with the
 related configuration file, enter the following command::
 
   $ bin/ewsd --config=examples/broadcast.config
+
+Now open the examples/broadcast.html file with a Web Socket capable browser.

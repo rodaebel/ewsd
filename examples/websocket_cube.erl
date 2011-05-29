@@ -1,12 +1,14 @@
 %% @author Tobias Rodaebel
-%% @doc Web Socket broadcast handler.
+%% @doc Web Socket broadcast handler for the Cube Demo.
 
--module(websocket_broadcast).
+-module(websocket_cube).
 
 -behaviour(websocket_handler).
 
 %% API
 -export([init_handler/0, handle_message/1, handle_push/1, handle_close/1]).
+
+-define(KARAJAN_SERVER, {karajan_server, karajan@localhost}).
 
 %% @doc Initializes the handler.
 %% @spec init_handler() -> ok
@@ -22,14 +24,22 @@ handle_message({handshake, Socket, Data}) ->
     gen_tcp:send(Socket, Response),
     error_logger:info_msg("~p Socket connected (~s)~n", [self(), Path]);
 handle_message({message, _Socket, Bin}) ->
-    Message = binary_to_list(Bin),
-    error_logger:info_msg("~p Received: ~s~n", [self(), Message]),
+    try json_parser:dvm_parser(Bin) of
+        {ok,{struct,[{_,Scale}]},_} ->
+            gen_server:cast(?KARAJAN_SERVER, {message, "/1/scale", [Scale]})
+    catch
+        _ ->
+            Message = binary_to_list(Bin),
+            error_logger:info_msg("~p Received: ~s~n", [self(), Message])
+    end,
     broadcast(Bin).
 
 %% @doc Handles push messages.
 %% @spec handle_push(Msg) -> any()
-handle_push(_Msg) ->
-    ok.
+handle_push({accelerometer, [X,Y,Z]}) ->
+    broadcast(io_lib:format("{\"x\":~f,\"y\":~f,\"z\":~f}", [X,Y,Z]));
+handle_push({scale, [Scale]}) ->
+    broadcast(io_lib:format("{\"s\":~f}", [Scale])).
 
 %% @doc Handles closed Web Socket.
 %% @spec handle_close(Msg) -> any()

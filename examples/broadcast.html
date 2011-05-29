@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Web Socket Client</title>
+    <script type="text/javascript">
+
+    var ws;
+
+    // Check whether the Web Socket is ready
+    var checkWebSocketReadyState = function() {};
+
+    function init() {
+
+      var body = document.getElementsByTagName('body')[0];
+
+      if ("WebSocket" in window) {
+
+        ws = new WebSocket("ws://localhost:8888/foo/bar");
+
+        // Handle open event
+        ws.onopen = function(ev) {
+
+          document.onclick = function(ev) {
+
+            ws.send(".");
+
+          };
+
+          window.onbeforeunload = function() {
+
+          };
+
+          body.innerHTML += "Web Socket connected<br>";
+
+        };
+
+        // Handle Web Socket message
+        ws.onmessage = function(ev) {
+
+          body.innerHTML += ev.data + " ";
+
+        };
+ 
+        // Handle close event
+        ws.onclose = function(ev) {
+
+          body.innerHTML += "Web Socket closed<br>";
+
+        };
+
+        // Handle error event
+        ws.onerror = function(ev) {
+
+          body.innerHTML += "Web Socket error<br>";
+
+        };
+
+        // Check whether the Web Socket is ready
+        checkWebSocketReadyState = function() {
+
+          if (ws.readyState != 1)
+            body.innerHTML += "Web Socket not ready<br>";
+        };
+
+        window.setTimeout("checkWebSocketReadyState();", 2000);
+
+      }
+
+    }
+    </script>
+  </head>
+  <body onLoad="init();">
+  </body>
+</html>
