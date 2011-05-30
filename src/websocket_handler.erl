@@ -10,8 +10,7 @@
 %% @doc Defines the Web Socket handler behaviour.
 %% @spec behaviour_info(callbacks) -> [] | undefined
 behaviour_info(callbacks) ->
-    [{init_handler, 0}, {handle_message, 1}, {handle_push, 1},
-     {handle_close, 1}];
+    [{init, 0}, {handle_message, 1}, {handle_push, 1}, {handle_close, 1}];
 behaviour_info(_Other) ->
     undefined.
 

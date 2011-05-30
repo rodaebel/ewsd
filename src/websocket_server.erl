@@ -35,7 +35,7 @@ start_link() ->
 %% @doc Initializes the server.
 %% @spec init(Args) -> {ok, State} | {stop, Reason}
 init(State = #state{ip=Address, port=Port, handler=Handler, timeout=Timeout}) ->
-    ok = Handler:init_handler(),
+    ok = Handler:init(),
     Options = [binary, {ip, Address}, {active, false}, {reuseaddr, true},
                {packet, 0}],
     case gen_tcp:listen(Port, Options) of

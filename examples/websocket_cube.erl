@@ -6,13 +6,13 @@
 -behaviour(websocket_handler).
 
 %% API
--export([init_handler/0, handle_message/1, handle_push/1, handle_close/1]).
+-export([init/0, handle_message/1, handle_push/1, handle_close/1]).
 
 -define(KARAJAN_SERVER, {karajan_server, karajan@localhost}).
 
 %% @doc Initializes the handler.
-%% @spec init_handler() -> ok
-init_handler() ->
+%% @spec init() -> ok
+init() ->
     ets:new(clients, [public, named_table, ordered_set]),
     ok.
 
