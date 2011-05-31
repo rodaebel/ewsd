@@ -16,7 +16,7 @@ init() ->
 %% @doc Handles Web Socket messages.
 %% @spec handle_message({Type, Socket, Data}) -> any()
 handle_message({handshake, Socket, Data}) ->
-    {ok, Response, Path} = websocket_lib:process_handshake(Data),
+    {ok, Response, _Path} = websocket_lib:process_handshake(Data),
     gen_tcp:send(Socket, Response);
 handle_message({message, Socket, Bin}) ->
     gen_tcp:send(Socket, [0, Bin, 255]).
