@@ -17,8 +17,7 @@ init() ->
 %% @spec handle_message({Type, Socket, Data}) -> any()
 handle_message({handshake, Socket, Data}) ->
     {ok, Response, Path} = websocket_lib:process_handshake(Data),
-    gen_tcp:send(Socket, Response),
-    error_logger:info_msg("~p Socket connected (~s)~n", [self(), Path]);
+    gen_tcp:send(Socket, Response);
 handle_message({message, Socket, Bin}) ->
     gen_tcp:send(Socket, [0, Bin, 255]).
 
@@ -29,7 +28,5 @@ handle_push(_Msg) ->
 
 %% @doc Handles closed Web Socket.
 %% @spec handle_close(Msg) -> any()
-handle_close({closed, _Socket}) ->
-    error_logger:info_msg("~p Socket closed~n", [self()]);
-handle_close({timeout, _Socket}) ->
-    error_logger:info_msg("~p Socket closed (timeout)~n", [self()]).
+handle_close(_Msg) ->
+    ok.
