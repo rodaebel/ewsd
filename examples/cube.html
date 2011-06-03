@@ -188,7 +188,7 @@
           debug.innerHTML += "Scale:\r\n";
           debug.innerHTML += scale+"\r\n";
 
-          rotate(elem, y, x*-1, scale);
+          rotate(elem, y, x*-1, scale*3);
 
         };
  
@@ -222,7 +222,7 @@
   </head>
   <body onLoad="init();">
     <input id="smooth" type="checkbox" checked />Smooth<br />
-    <input id="slider" type="range"  min="0" max="3" step="0.1" />
+    <input id="slider" type="range"  min="0" max="1" step="0.01" />
     <pre id="debug"></pre>
     <pre id="log"></pre>
     <div id="viewport">
