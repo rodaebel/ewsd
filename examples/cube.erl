@@ -26,7 +26,7 @@ handle_message({handshake, Socket, Data}) ->
 handle_message({message, _Socket, Bin}) ->
     try json_parser:dvm_parser(Bin) of
         {ok,{struct,[{_,Scale}]},_} ->
-            gen_server:cast(?KARAJAN_SERVER, {message, "/1/scale", [Scale]})
+            gen_server:cast(?KARAJAN_SERVER, {message, "/1/fader1", [Scale]})
     catch
         _ ->
             Message = binary_to_list(Bin),
