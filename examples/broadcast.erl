@@ -1,7 +1,7 @@
 %% @author Tobias Rodaebel
 %% @doc Web Socket broadcast handler.
 
--module(websocket_broadcast).
+-module(broadcast).
 
 -behaviour(websocket_handler).
 

@@ -1,7 +1,7 @@
 %% @author Tobias Rodaebel
 %% @doc Web Socket broadcast handler for the Cube Demo.
 
--module(websocket_cube).
+-module(cube).
 
 -behaviour(websocket_handler).
 
