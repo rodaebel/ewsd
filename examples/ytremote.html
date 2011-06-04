@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>TouchOSC YouTube Remote Demo</title>
+    <style type="text/css">
+
+    body {
+      color: #111;
+      font-family: "Helvetica Neue", Helvetica, sans-serif;
+      font-size: 0.9em;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-weight: normal;
+    }
+
+    </style>
+    <script type="text/javascript" src="swfobject.js"></script>    
+    <script type="text/javascript">
+
+    var ws, ytswf, updateCurrentTime;
+
+    // Check whether the Web Socket is ready
+    var checkWebSocketReadyState = function() {};
+
+    function onYouTubePlayerReady(playerId) {
+      if (playerId && playerId != 'undefined')
+        ytswf = document.getElementById('myytplayer');
+    }
+
+    function init() {
+
+      var debug = document.getElementById('debug');
+
+      var log = document.getElementById('log');
+
+      if ("WebSocket" in window) {
+
+        log.innerHTML += "INFO: Connecting<br/>";
+        ws = new WebSocket("ws://localhost:8888/");
+
+        updateCurrentTime = function() {
+          if (ytswf) {
+            if (ytswf.getPlayerState() != 1)
+              return;
+            if (ytswf.getCurrentTime() != 'Infinity') {
+              var currTime = ytswf.getCurrentTime()*(1.0/ytswf.getDuration());
+              ws.send(JSON.stringify({"currTime":parseFloat(currTime)}));
+            }
+          }
+        };
+
+        window.setInterval('updateCurrentTime()', 100);
+
+        // Handle open event
+        ws.onopen = function(ev) {
+
+          log.innerHTML += "INFO: Remote connected<br/>";
+
+        };
+
+        // Handle Web Socket message
+        ws.onmessage = function(ev) {
+
+          debug.innerHTML = ev.data;
+
+          var remote = JSON.parse(ev.data);
+
+          if (remote.play == 1.0)
+            ytswf.playVideo();
+          else if (remote.play == 0.0)
+            ytswf.pauseVideo();
+
+          if (remote.offset)
+            ytswf.seekTo(remote.offset * ytswf.getDuration());
+
+        };
+ 
+        // Handle close event
+        ws.onclose = function(ev) {
+
+          log.innerHTML += "INFO: Remote disconnected<br/>";
+
+        };
+
+        // Check whether the Web Socket is ready
+        checkWebSocketReadyState = function() {
+
+          if (ws.readyState != 1)
+            log.innerHTML += "ERROR: Remote not ready!<br/>";
+
+        };
+
+        window.setTimeout("checkWebSocketReadyState();", 2000);
+
+      }
+
+      // Initialize YouTube Player
+      var params = {allowScriptAccess: "always"};
+
+      var atts = {id: "myytplayer"};
+
+      swfobject.embedSWF("http://www.youtube.com/v/PINAF3KLJl4?version=3&enablejsapi=1&playerapiid=ytplayer", "ytapiplayer", "640", "390", "8", null, {}, params, atts);
+
+    }
+
+    </script>
+  </head>
+  <body onLoad="init();">
+    <h1>TouchOSC YouTube Remote Demo</h1>
+    <div id="ytapiplayer">
+      You need Flash player 8+ and JavaScript enabled to view this video.
+    </div>
+    <div>
+      <label for="debug">Debug</label>
+      <pre id="debug"></pre>
+      <label for="log">Log</label>
+      <pre id="log"></pre>
+    </div>
+  </body>
+</html>
