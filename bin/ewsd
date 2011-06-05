@@ -5,7 +5,9 @@ MONITOR="false"
 DETACHED_OPTION=""
 CONFIG=""
 COOKIE="cookie"
-ERL=erl
+if [ -z "$ERL" ]; then
+   ERL=erl
+fi
 
 usage() {
    echo "Usage: $BASENAME [options]";
