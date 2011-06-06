@@ -65,7 +65,7 @@ EOF
    esac
 done
 
-if [[ ! $CONFIG =~ /^\/.*/ ]]; then
+if [[ $CONFIG = `echo $CONFIG | sed 's,^\/.*,,g'` ]]; then
     CONFIG=$PWD/$CONFIG;
 fi
 
